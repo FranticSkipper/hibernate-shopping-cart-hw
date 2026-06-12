@@ -1,6 +1,8 @@
 package mate.academy.model;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.MapsId;
 import jakarta.persistence.OneToMany;
@@ -14,10 +16,16 @@ public class ShoppingCart {
     @Id
     private long id;
 
-    @OneToMany
+    @OneToMany(cascade = {
+            CascadeType.PERSIST,
+            CascadeType.REMOVE,
+            CascadeType.MERGE,
+            CascadeType.REFRESH},
+            fetch = FetchType.LAZY
+    )
     private List<Ticket> tickets;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     @MapsId
     private User user;
 
