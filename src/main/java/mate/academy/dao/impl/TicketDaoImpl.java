@@ -6,19 +6,17 @@ import mate.academy.dao.TicketDao;
 import mate.academy.exception.DataProcessingException;
 import mate.academy.lib.Dao;
 import mate.academy.model.Ticket;
-import org.hibernate.SessionFactory;
+import mate.academy.util.HibernateUtil;
 
 @Dao
-public class TicketDaoImpl extends AbstractDao implements TicketDao {
-    public TicketDaoImpl(SessionFactory factory) {
-        super(factory);
-    }
-
+public class TicketDaoImpl implements TicketDao {
     @Override
     public Ticket add(Ticket ticket) {
         EntityTransaction entityTransaction = null;
 
-        try (EntityManager em = this.factory.createEntityManager()) {
+        try (EntityManager em = HibernateUtil
+                .getSessionFactory()
+                .openSession()) {
             entityTransaction = em.getTransaction();
             entityTransaction.begin();
             em.persist(ticket);

@@ -6,9 +6,12 @@ import mate.academy.lib.Injector;
 import mate.academy.model.CinemaHall;
 import mate.academy.model.Movie;
 import mate.academy.model.MovieSession;
+import mate.academy.model.User;
+import mate.academy.security.AuthenticationService;
 import mate.academy.service.CinemaHallService;
 import mate.academy.service.MovieService;
 import mate.academy.service.MovieSessionService;
+import mate.academy.service.ShoppingCartService;
 
 public class Main {
     public static void main(String[] args) {
@@ -55,5 +58,19 @@ public class Main {
         System.out.println(movieSessionService.get(yesterdayMovieSession.getId()));
         System.out.println(movieSessionService.findAvailableSessions(
                 fastAndFurious.getId(), LocalDate.now()));
+        ShoppingCartService shoppingCartService
+                = (ShoppingCartService) injector.getInstance(ShoppingCartService.class);
+        AuthenticationService authenticationService
+                = (AuthenticationService) injector.getInstance(AuthenticationService.class);
+
+        try {
+            User user = authenticationService.register(
+                    LocalDateTime.now() + "test@gmail.com",
+                    "password1234");
+            shoppingCartService.addSession(yesterdayMovieSession, user);
+        } catch (Exception e) {
+            throw new RuntimeException("Can't register user or add new session. Message "
+                    + e.getMessage());
+        }
     }
 }

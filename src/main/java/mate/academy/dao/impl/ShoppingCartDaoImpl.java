@@ -2,26 +2,29 @@ package mate.academy.dao.impl;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import java.util.Optional;
 import mate.academy.dao.ShoppingCartDao;
 import mate.academy.exception.DataProcessingException;
 import mate.academy.lib.Dao;
 import mate.academy.model.ShoppingCart;
 import mate.academy.model.User;
+import mate.academy.util.HibernateUtil;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 
 @Dao
-public class ShoppingCartDaoImpl extends AbstractDao implements ShoppingCartDao {
-    public ShoppingCartDaoImpl(SessionFactory factory) {
-        super(factory);
-    }
-
+public class ShoppingCartDaoImpl implements ShoppingCartDao {
     @Override
     public ShoppingCart add(ShoppingCart shoppingCart) {
         EntityTransaction entityTransaction = null;
 
-        try (Session em = this.factory.getCurrentSession()) {
+        try (Session em = HibernateUtil
+                .getSessionFactory()
+                .openSession()) {
             entityTransaction = em.getTransaction();
             entityTransaction.begin();
             em.save(shoppingCart);
@@ -39,11 +42,19 @@ public class ShoppingCartDaoImpl extends AbstractDao implements ShoppingCartDao 
 
     @Override
     public Optional<ShoppingCart> getByUser(User user) {
-        try (EntityManager entityManager = this.factory.createEntityManager()) {
-            return entityManager.createQuery("from ShoppingCart "
-                                    + "WHERE user = :user",
-                            ShoppingCart.class)
-                    .setParameter("user", user)
+        try (EntityManager entityManager = HibernateUtil
+                .getSessionFactory()
+                .openSession()) {
+            CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+            CriteriaQuery<ShoppingCart> criteriaQuery = criteriaBuilder
+                    .createQuery(ShoppingCart.class);
+            Root<ShoppingCart> root = criteriaQuery.from(ShoppingCart.class);
+            root.fetch("tickets", JoinType.LEFT);
+            Predicate userPredicate = criteriaBuilder.equal(root.get("user"), user);
+            criteriaQuery.where(userPredicate);
+
+            return entityManager
+                    .createQuery(criteriaQuery)
                     .getResultList()
                     .stream()
                     .findFirst();
@@ -56,7 +67,9 @@ public class ShoppingCartDaoImpl extends AbstractDao implements ShoppingCartDao 
     public void update(ShoppingCart shoppingCart) {
         EntityTransaction entityTransaction = null;
 
-        try (EntityManager em = this.factory.createEntityManager()) {
+        try (EntityManager em = HibernateUtil
+                .getSessionFactory()
+                .openSession()) {
             entityTransaction = em.getTransaction();
             entityTransaction.begin();
             em.merge(shoppingCart);

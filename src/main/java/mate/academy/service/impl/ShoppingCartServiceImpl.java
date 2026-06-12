@@ -5,13 +5,13 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import mate.academy.dao.ShoppingCartDao;
+import mate.academy.dao.TicketDao;
 import mate.academy.lib.Inject;
 import mate.academy.lib.Service;
 import mate.academy.model.MovieSession;
 import mate.academy.model.ShoppingCart;
 import mate.academy.model.Ticket;
 import mate.academy.model.User;
-import mate.academy.security.AuthenticationService;
 import mate.academy.service.ShoppingCartService;
 
 @Service
@@ -20,7 +20,7 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
     private ShoppingCartDao shoppingCartDao;
 
     @Inject
-    private AuthenticationService authenticationService;
+    private TicketDao ticketDao;
 
     @Override
     public void addSession(MovieSession movieSession, User user) {
@@ -39,6 +39,7 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
         ShoppingCart shoppingCart = shoppingCartOptional.get();
         List<Ticket> tickets = shoppingCart.getTickets();
         tickets.add(ticket);
+        this.ticketDao.add(ticket);
         this.shoppingCartDao.update(shoppingCart);
     }
 
